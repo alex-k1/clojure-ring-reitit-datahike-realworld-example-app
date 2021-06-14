@@ -14,12 +14,15 @@
                  [metosin/ring-http-response "0.9.2"]
                  [metosin/muuntaja "0.6.8"]
 
+                 [funcool/struct "1.4.0"]
+
                  [integrant "0.8.0"]
 
                  [io.replikativ/datahike "0.3.6"]]
 
   :profiles {:dev {:dependencies [[ring/ring-mock "0.4.0"]
-                                  [integrant/repl "0.3.2"]]
+                                  [integrant/repl "0.3.2"]
+                                  [org.clojure/test.check "1.1.0"]]
                    :source-paths ["dev"]
                    :repl-options {:init-ns user}}}
 
