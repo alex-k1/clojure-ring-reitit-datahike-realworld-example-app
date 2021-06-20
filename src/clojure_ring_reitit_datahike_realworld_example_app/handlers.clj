@@ -1,23 +1,28 @@
 (ns clojure-ring-reitit-datahike-realworld-example-app.handlers
-  (:require [clojure-ring-reitit-datahike-realworld-example-app.validations :as v]
+  (:require [clojure-ring-reitit-datahike-realworld-example-app.errors :refer [format-failure]]
+            [clojure-ring-reitit-datahike-realworld-example-app.validations :as v]
+            [failjure.core :as f]
             [ring.util.http-response :refer [ok unprocessable-entity]]))
-
-(defn- format-errors [errors]
-  (->> errors
-       (map (fn [[field message]] [field [message]]))
-       (into {})))
 
 (defn login-user [request]
   (let [body (get-in request [:parameters :body])
-        login-user-svc (get-in request [:services :login-user-svc])
-        [errors valid-body] (v/validate-body body v/login-user-schema)]
-    (if (nil? errors)
-      (if-let [user (login-user-svc valid-body)]
-        (ok {:user user})
-        (unprocessable-entity {:errors {"email or password" ["is invalid"]}}))
-      (unprocessable-entity {:errors (format-errors errors)}))))
+        api (get-in request [:apis :login-user])
+        res (f/ok-> body
+                     (v/validate-body v/login-user-schema)
+                     api)]
+    (if (f/ok? res)
+      (ok {:user res})
+      (unprocessable-entity {:errors (format-failure res)}))))
 
-(defn register-user [request])
+(defn register-user [request]
+  (let [body (get-in request [:parameters :body])
+        api (get-in request [:apis :register-user])
+        res (f/ok-> body
+                    (v/validate-body v/register-user-schema)
+                    api)]
+    (if (f/ok? res)
+      (ok {:user res})
+      (unprocessable-entity {:errors (format-failure res)}))))
 
 (defn get-user [request])
 
@@ -26,17 +31,24 @@
 (comment
 
   (login-user {:parameters {:body {:email "123asd.com" :password "6900"}}})
-;; => {:status 422, :headers {}, :body {:errors {:email ["is invalid"], :password ["is too short (minimum is 8 character)"]}}}
 
   (require '[clojure.spec.alpha :as s]
-           '[clojure.spec.gen.alpha :as gen])
+           '[clojure.spec.gen.alpha :as gen]
+           '[clojure-ring-reitit-datahike-realworld-example-app.errors :refer [api-fail]])
+
+  (login-user {:parameters {:body {:email "123asd.com" :password ""}}
+               :apis {:login-user (constantly (gen/generate (s/gen :clojure-ring-reitit-datahike-realworld-example-app.specs/user)))}})
 
   (login-user {:parameters {:body {:email "123@asd.com" :password "124556900"}}
-               :services {:login-user-svc (constantly (gen/generate (s/gen :clojure-ring-reitit-datahike-realworld-example-app.specs/user)))}})
-;; => {:status 200, :headers {}, :body {:user {:email "nIUoi", :token "Z36o74FF2u3", :username "165PQNSOw1lTKU0R6e9K3uF8Cy", :bio "DH400me2gW3", :image "x69492F34"}}}
+               :apis {:login-user (constantly (gen/generate (s/gen :clojure-ring-reitit-datahike-realworld-example-app.specs/user)))}})
 
   (login-user {:parameters {:body {:email "123@asd.com" :password "124556900"}}
-               :services {:login-user-svc (constantly nil)}})
-;; => {:status 422, :headers {}, :body {:errors {"email or password" ["is invalid"]}}}
+               :apis {:login-user (constantly (api-fail "oops" :oops-fail))}})
+
+  (register-user {:parameters {:body {:username "hello" :email "hello" :password "34234"}}
+                  :apis {:register-user (constantly (gen/generate (s/gen :clojure-ring-reitit-datahike-realworld-example-app.specs/user)))}})
+
+  (register-user {:parameters {:body {:username "hello" :email "hello@hello.com" :password "1232334234"}}
+                  :apis {:register-user (constantly (gen/generate (s/gen :clojure-ring-reitit-datahike-realworld-example-app.specs/user)))}})
 
   )

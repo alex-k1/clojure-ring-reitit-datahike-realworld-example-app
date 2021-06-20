@@ -16,6 +16,8 @@
 
                  [funcool/struct "1.4.0"]
 
+                 [failjure "2.2.0"]
+
                  [integrant "0.8.0"]
 
                  [io.replikativ/datahike "0.3.6"]]
