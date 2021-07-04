@@ -9,7 +9,7 @@
 (s/def ::image (s/nilable string?))
 
 (s/def :login/user (s/keys :req-un [::email ::password]))
-(s/def :register/user (s/keys :req-un [::username ::email ::pasword]))
+(s/def :register/user (s/keys :req-un [::username ::email ::password]))
 (s/def :update/user (s/keys :opt-un [::username ::email ::password ::bio ::image]))
 (s/def ::user (s/keys :req-un [::email ::token ::username ::bio ::image]))
 

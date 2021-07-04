@@ -1,4 +1,4 @@
-(ns clojure-ring-reitit-datahike-realworld-example-app.errors
+(ns clojure-ring-reitit-datahike-realworld-example-app.failures
   (:require [clojure.string :refer [join]]
             [failjure.core :as f]))
 
@@ -17,7 +17,7 @@
   (message [this] (:message this)))
 
 (defn api-fail [message error-type]
-  (->ApiFailure (str message" - " (name error-type)) error-type))
+  (->ApiFailure (str message " - " (name error-type)) error-type))
 
 (defprotocol FormatFailure
   (format-failure [this]))
@@ -33,3 +33,11 @@
   (format-failure [this] (case (:error-type this)
                            :boo-error {:boo ["boo error"]}
                            {:default ["default error"]})))
+
+
+(def email-and-username-exist-fail (api-fail "Email and username already exist" :email-and-username-exist))
+(def email-exists-fail (api-fail "Email already exists" :email-exists))
+(def username-exists-fail (api-fail "Username already exists" :username-exists))
+(def password-invalid-fail (api-fail "User's password didn't match" :email-or-password-invalid))
+(def email-invalid-fail (api-fail "User with email not found" :email-or-password-invalid))
+(def user-not-found-fail (api-fail "User with id not found" :user-not-found))

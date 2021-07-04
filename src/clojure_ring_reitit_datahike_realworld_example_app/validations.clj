@@ -1,26 +1,31 @@
 (ns clojure-ring-reitit-datahike-realworld-example-app.validations
-  (:require [clojure-ring-reitit-datahike-realworld-example-app.errors :refer [invalid-body]]
-            [clojure.string :refer [trim]]
+  (:require [clojure-ring-reitit-datahike-realworld-example-app.failures :refer [invalid-body]]
+            [clojure.string :refer [trim lower-case]]
             [struct.core :as st]))
 
 ;; use intermedium coerce step to sanitize input
 (def trim-coerce {:coerce (fnil trim "")})
+(def lower-coerce {:coerce lower-case})
 
 (def login-user-schema [[:email
                          trim-coerce
                          [st/required :message "can't be blank"]
-                         [st/email :message "is invalid"]]
+                         [st/email :message "is invalid"]
+                         lower-coerce]
                         [:password
                          trim-coerce
                          [st/required :message "can't be blank"]]])
 
 (def register-user-schema [[:username
                             trim-coerce
-                            [st/required :message "can't be blank"]]
+                            [st/required :message "can't be blank"]
+                            [st/max-count 50 :message "is too long (maximum is %s character)"]]
                            [:email
                             trim-coerce
                             [st/required :message "can't be blank"]
-                            [st/email :message "is invalid"]]
+                            [st/email :message "is invalid"]
+                            [st/max-count 250 :message "is too long (maximum is %s character)"]
+                            lower-coerce]
                            [:password
                             trim-coerce
                             [st/required :message "can't be blank"]
@@ -55,6 +60,6 @@
 
   (validate-body {:email "1@emailcom" :password "23233"} login-user-schema)
 
-  (validate-body {:email "1@email.com" :password "2323123213"} login-user-schema)
+  (validate-body {:email "1@eMAil.Com" :password "2323123213"} login-user-schema)
 
   )

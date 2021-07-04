@@ -16,11 +16,15 @@
 
                  [funcool/struct "1.4.0"]
 
+                 [crypto-password "0.3.0"]
+                 [buddy/buddy-sign "3.4.1"]
+                 [clojure.java-time "0.3.2"]
+
                  [failjure "2.2.0"]
 
-                 [integrant "0.8.0"]
+                 [io.replikativ/datahike "0.3.6"]
 
-                 [io.replikativ/datahike "0.3.6"]]
+                 [integrant "0.8.0"]]
 
   :profiles {:dev {:dependencies [[ring/ring-mock "0.4.0"]
                                   [integrant/repl "0.3.2"]
