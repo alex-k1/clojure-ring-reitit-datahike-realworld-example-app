@@ -3,31 +3,32 @@
             [datahike.api :as d]
             [datahike.core :refer [resolve-tempid squuid]]))
 
-(def schema [;; user
-             {:db/ident :user/user-id
-              :db/valueType :db.type/uuid
-              :db/cardinality :db.cardinality/one
-              :db/unique :db.unique/identity}
-             {:db/ident :user/username
-              :db/valueType :db.type/string
-              :db/cardinality :db.cardinality/one
-              :db/unique :db.unique/identity}
-             {:db/ident :user/email
-              :db/valueType :db.type/string
-              :db/cardinality :db.cardinality/one
-              :db/unique :db.unique/identity}
-             {:db/ident :user/password
-              :db/valueType :db.type/string
-              :db/cardinality :db.cardinality/one}
-             {:db/ident :user/bio
-              :db/valueType :db.type/string
-              :db/cardinality :db.cardinality/one}
-             {:db/ident :user/image
-              :db/valueType :db.type/string
-              :db/cardinality :db.cardinality/one}
-             ])
+(def schema
+  [;; user
+   {:db/ident :user/user-id
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/unique :db.unique/identity}
+   {:db/ident :user/username
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/unique :db.unique/identity}
+   {:db/ident :user/email
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/unique :db.unique/identity}
+   {:db/ident :user/password
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one}
+   {:db/ident :user/bio
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one}
+   {:db/ident :user/image
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one}
+   ])
 
-(def user-pattern '[(:user/user-id :as user-id)
+(def user-pattern '[(:user/user-id :as :user-id)
                     (:user/username :as :username)
                     (:user/email :as :email)
                     (:user/password :as :password)
@@ -38,7 +39,7 @@
   (postwalk #(if (keyword? %) (keyword ns (name %)) %) m))
 
 (defn- generate-id []
-  (squuid))
+  (str (squuid)))
 
 (defn find-user-by-user-id [conn user-id]
   (d/q '[:find (pull ?e pattetn) .

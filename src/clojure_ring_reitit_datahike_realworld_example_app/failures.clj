@@ -19,22 +19,6 @@
 (defn api-fail [message error-type]
   (->ApiFailure (str message " - " (name error-type)) error-type))
 
-(defprotocol FormatFailure
-  (format-failure [this]))
-
-(extend-protocol FormatFailure
-  ValidationFailure
-  (format-failure [this] (->> this
-                              :errors
-                              (map (fn [[field message]] [field [message]]))
-                              (into {})))
-
-  ApiFailure
-  (format-failure [this] (case (:error-type this)
-                           :boo-error {:boo ["boo error"]}
-                           {:default ["default error"]})))
-
-
 (def email-and-username-exist-fail (api-fail "Email and username already exist" :email-and-username-exist))
 (def email-exists-fail (api-fail "Email already exists" :email-exists))
 (def username-exists-fail (api-fail "Username already exists" :username-exists))

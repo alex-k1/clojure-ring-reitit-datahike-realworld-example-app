@@ -18,6 +18,7 @@
 
                  [crypto-password "0.3.0"]
                  [buddy/buddy-sign "3.4.1"]
+                 [buddy/buddy-auth "3.0.1"]
                  [clojure.java-time "0.3.2"]
 
                  [failjure "2.2.0"]

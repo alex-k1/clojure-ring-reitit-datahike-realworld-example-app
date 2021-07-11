@@ -7,11 +7,18 @@
     (password/check raw encrypted)
     (catch Exception _ false)))
 
-(defn- email-username-exist-failure [user-by-email user-by-username]
+(defn- email-username-exist-fail [user-by-email user-by-username]
   (cond
     (and user-by-email user-by-username) fail/email-and-username-exist-fail
     user-by-email fail/email-exists-fail
     user-by-username fail/username-exists-fail
+    :else nil))
+
+(defn- email-username-taken-by-other-fail [user-id {user-id-by-email :user-id :or {user-id-by-email user-id}} {user-id-by-username :user-id :or {user-id-by-username user-id}}]
+  (cond
+    (and (not= user-id user-id-by-email) (not= user-id user-id-by-username)) fail/email-and-username-exist-fail
+    (not= user-id user-id-by-email) fail/email-exists-fail
+    (not= user-id user-id-by-username) fail/username-exists-fail
     :else nil))
 
 (defn login-user [{:keys [find-user-by-email generate-token]} {:keys [email password]}]
@@ -24,22 +31,22 @@
     fail/email-invalid-fail))
 
 (defn register-user [{:keys [find-user-by-email find-user-by-username add-user generate-token]} {:keys [username email] :as user-data}]
-  (if-let [fail (email-username-exist-failure (find-user-by-email email) (find-user-by-username username))]
+  (if-let [fail (email-username-exist-fail (find-user-by-email email) (find-user-by-username username))]
     fail
     (let [user (add-user (update user-data :password password/encrypt))]
       (-> user
           (dissoc :password)
           (assoc :token (generate-token (:user-id user)))))))
 
-(defn get-user [{:keys [find-user-by-id generate-token]} {:keys [user-id]}]
-  (if-let [user (find-user-by-id user-id)]
+(defn get-user [{:keys [find-user-by-user-id generate-token]} user-id]
+  (if-let [user (find-user-by-user-id user-id)]
     (-> user
         (dissoc :password)
         (assoc :token (generate-token (:user-id user))))
     fail/user-not-found-fail))
 
-(defn update-user [{:keys [find-user-by-email find-user-by-username update-user generate-token]} {:keys [username email] :as user-data}]
-  (if-let [fail (email-username-exist-failure (find-user-by-email email) (find-user-by-username username))]
+(defn update-user [{:keys [find-user-by-email find-user-by-username update-user generate-token]} {:keys [user-id username email] :as user-data}]
+  (if-let [fail (email-username-taken-by-other-fail user-id (find-user-by-email email) (find-user-by-username username))]
     fail
     (if-let [user (update-user user-data)]
       (-> user
@@ -79,8 +86,8 @@
   (register-user {:find-user-by-email (constantly nil) :find-user-by-username (constantly user1) :add-user (constantly user1) :generate-token generate-token} register-user-body)
   (register-user {:find-user-by-email (constantly user1) :find-user-by-username (constantly user1) :add-user (constantly user1) :generate-token generate-token} register-user-body)
 
-  (get-user {:find-user-by-id (constantly nil) :generate-token generate-token} {:user-id 1})
-  (get-user {:find-user-by-id (constantly user1) :generate-token generate-token} {:user-id 1})
+  (get-user {:find-user-by-user-id (constantly nil) :generate-token generate-token} {:user-id 1})
+  (get-user {:find-user-by-user-id (constantly user1) :generate-token generate-token} {:user-id 1})
 
   (update-user {:find-user-by-email (constantly nil) :find-user-by-username (constantly nil) :update-user (constantly user1) :generate-token generate-token} register-user-body)
   (update-user {:find-user-by-email (constantly nil) :find-user-by-username (constantly nil) :update-user (constantly nil) :generate-token generate-token} register-user-body)
