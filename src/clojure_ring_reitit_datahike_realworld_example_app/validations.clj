@@ -32,10 +32,11 @@
 
 (def update-user-schema [[:username
                           trim-coerce
-                          [st/min-count 1 :message "can't be blank"]
+                          [st/required :message "can't be blank"]
                           [st/max-count 50 :message "is too long (maximum is %s character)"]]
                          [:email
                           trim-coerce
+                          [st/required :message "can't be blank"]
                           [st/email :message "is invalid"]
                           [st/max-count 250 :message "is too long (maximum is %s character)"]
                           lower-coerce]
@@ -43,9 +44,11 @@
                           [st/min-count 8 :message "is too short (minimum is %s character)"]
                           [st/max-count 100 :message "is too long (maximum is %s character)"]]
                          [:bio
-                          trim-coerce]
+                          trim-coerce
+                          [st/max-count 1000 :message "is too long (maximum is %s character)"]]
                          [:image
-                          trim-coerce]])
+                          trim-coerce
+                          [st/max-count 500 :message "is too long (maximum is %s character)"]]])
 
 (defn validate-body [body schema]
   (let [[errors body] (st/validate body schema {:strip true})]
@@ -78,4 +81,5 @@
   (validate-body {:bio " 1234 " :username "   sdf"} update-user-schema)
 
   (validate-body {:bio " 1234 " :username "   "} update-user-schema)
+
   )
