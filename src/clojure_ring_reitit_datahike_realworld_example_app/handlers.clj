@@ -49,11 +49,9 @@
 
 (extend-protocol FailureToResponse
   ValidationFailure
-  (fail-to-response [this] (->> this
-                                :errors
-                                (map (fn [[field message]] [field [message]]))
-                                (into {})
-                                unprocessable-entity))
+  (fail-to-response [{:keys [errors]}] (unprocessable-entity {:errors (->> errors
+                                                                           (map (fn [[field message]] [field [message]]))
+                                                                           (into {}))}))
 
   ApiFailure
   (fail-to-response [this] (case (:error-type this)
