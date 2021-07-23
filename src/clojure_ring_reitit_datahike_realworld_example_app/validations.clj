@@ -18,37 +18,37 @@
 (def register-user-schema [[:username
                             trim-coerce
                             [st/required :message "can't be blank"]
-                            [st/max-count 50 :message "is too long (maximum is %s character)"]]
+                            [st/max-count 50 :message "is too long (maximum is %s characters)"]]
                            [:email
                             trim-coerce
                             [st/required :message "can't be blank"]
                             [st/email :message "is invalid"]
-                            [st/max-count 250 :message "is too long (maximum is %s character)"]
+                            [st/max-count 250 :message "is too long (maximum is %s characters)"]
                             lower-coerce]
                            [:password
                             [st/required :message "can't be blank"]
-                            [st/min-count 8 :message "is too short (minimum is %s character)"]
-                            [st/max-count 100 :message "is too long (maximum is %s character)"]]])
+                            [st/min-count 8 :message "is too short (minimum is %s characters)"]
+                            [st/max-count 100 :message "is too long (maximum is %s characters)"]]])
 
 (def update-user-schema [[:username
                           trim-coerce
                           [st/required :message "can't be blank"]
-                          [st/max-count 50 :message "is too long (maximum is %s character)"]]
+                          [st/max-count 50 :message "is too long (maximum is %s characters)"]]
                          [:email
                           trim-coerce
                           [st/required :message "can't be blank"]
                           [st/email :message "is invalid"]
-                          [st/max-count 250 :message "is too long (maximum is %s character)"]
+                          [st/max-count 250 :message "is too long (maximum is %s characters)"]
                           lower-coerce]
                          [:password
-                          [st/min-count 8 :message "is too short (minimum is %s character)"]
-                          [st/max-count 100 :message "is too long (maximum is %s character)"]]
+                          [st/min-count 8 :message "is too short (minimum is %s characters)"]
+                          [st/max-count 100 :message "is too long (maximum is %s characters)"]]
                          [:bio
                           trim-coerce
-                          [st/max-count 1000 :message "is too long (maximum is %s character)"]]
+                          [st/max-count 1000 :message "is too long (maximum is %s characters)"]]
                          [:image
                           trim-coerce
-                          [st/max-count 500 :message "is too long (maximum is %s character)"]]])
+                          [st/max-count 500 :message "is too long (maximum is %s characters)"]]])
 
 (defn validate-body [body schema]
   (let [[errors body] (st/validate body schema {:strip true})]

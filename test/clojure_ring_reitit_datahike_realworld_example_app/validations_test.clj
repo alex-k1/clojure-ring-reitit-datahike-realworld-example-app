@@ -38,134 +38,139 @@
                     (sut/validate-body schema)
                     :field3)))))
 
-;; login user schema
+(t/deftest test-login-user-schema
 
-(t/deftest test-valid-login-user-schema
-  (let [login-body {:email "  Email@email.coM " :password "12345678  "}
-        validated-body (sut/validate-body login-body sut/login-user-schema)]
-    (t/is (nil? (:errors validated-body)))
-    (t/is (= "email@email.com" (:email validated-body)))
-    (t/is (= (:password login-body) (:password validated-body)))))
+  (t/testing "all fields valid"
+    (let [login-body {:email "  Email@email.coM " :password "12345678  "}
+          validated-body (sut/validate-body login-body sut/login-user-schema)]
+      (t/is (nil? (:errors validated-body)))
+      (t/is (= "email@email.com" (:email validated-body)))
+      (t/is (= (:password login-body) (:password validated-body)))))
 
-(t/deftest test-empty-password-login-user-schema
-  (let [login-body {:email "  Email@email.coM " :password ""}
-        validated-body (sut/validate-body login-body sut/login-user-schema)]
-    (t/is (= "can't be blank" (get-in validated-body [:errors :password])))
-    (t/is (nil? (get-in validated-body [:errors :email])))))
+  (t/testing "empty password"
+    (let [login-body {:email "  Email@email.coM " :password ""}
+          validated-body (sut/validate-body login-body sut/login-user-schema)]
+      (t/is (= "can't be blank" (get-in validated-body [:errors :password])))
+      (t/is (nil? (get-in validated-body [:errors :email])))))
 
-(t/deftest test-empty-email-password-login-user-schema
-  (let [login-body {:email "   " :password ""}
-        validated-body (sut/validate-body login-body sut/login-user-schema)]
-    (t/is (= "can't be blank" (get-in validated-body [:errors :email])))
-    (t/is (= "can't be blank" (get-in validated-body [:errors :password])))))
+  (t/testing "empty email and password"
+    (let [login-body {:email "   " :password ""}
+          validated-body (sut/validate-body login-body sut/login-user-schema)]
+      (t/is (= "can't be blank" (get-in validated-body [:errors :email])))
+      (t/is (= "can't be blank" (get-in validated-body [:errors :password])))))
 
-(t/deftest test-invalid-email-login-user-schema
-  (let [login-body {:email "email@com" :password "12345678"}
-        validated-body (sut/validate-body login-body sut/login-user-schema)]
-    (t/is (= "is invalid" (get-in validated-body [:errors :email])))
-    (t/is (nil? (get-in validated-body [:errors :password])))))
+  (t/testing "invalid email"
+    (let [login-body {:email "email@com" :password "12345678"}
+          validated-body (sut/validate-body login-body sut/login-user-schema)]
+      (t/is (= "is invalid" (get-in validated-body [:errors :email])))
+      (t/is (nil? (get-in validated-body [:errors :password]))))))
 
-;; register user schema
+(t/deftest test-register-user-schema
 
-(t/deftest test-valid-register-user-schema
-  (let [register-body {:username "user1 " :email "  Email@email.coM " :password "12345678  "}
-        validated-body (sut/validate-body register-body sut/register-user-schema)]
-    (t/is (nil? (:errors validated-body)))
-    (t/is (= "user1" (:username validated-body)))
-    (t/is (= "email@email.com" (:email validated-body)))
-    (t/is (= (:password register-body) (:password validated-body)))))
+ (t/testing "all fields valid"
+   (let [register-body {:username "user1 " :email "  Email@email.coM " :password "12345678  "}
+         validated-body (sut/validate-body register-body sut/register-user-schema)]
+     (t/is (nil? (:errors validated-body)))
+     (t/is (= "user1" (:username validated-body)))
+     (t/is (= "email@email.com" (:email validated-body)))
+     (t/is (= (:password register-body) (:password validated-body)))))
 
-(t/deftest test-empty-username-register-user-schema
-  (let [register-body {:username "" :email "  Email@email.coM " :password "12345678"}
-        validated-body (sut/validate-body register-body sut/register-user-schema)]
-    (t/is (= "can't be blank" (get-in validated-body [:errors :username])))
-    (t/is (nil? (get-in validated-body [:errors :email])))
-    (t/is (nil? (get-in validated-body [:errors :password])))))
+ (t/testing "empty username"
+   (let [register-body {:username "" :email "  Email@email.coM " :password "12345678"}
+         validated-body (sut/validate-body register-body sut/register-user-schema)]
+     (t/is (= "can't be blank" (get-in validated-body [:errors :username])))
+     (t/is (nil? (get-in validated-body [:errors :email])))
+     (t/is (nil? (get-in validated-body [:errors :password])))))
 
-(t/deftest test-empty-username-email-password-register-user-schema
-  (let [register-body {:email "   " :password ""}
-        validated-body (sut/validate-body register-body sut/register-user-schema)]
-    (t/is (= "can't be blank" (get-in validated-body [:errors :username])))
-    (t/is (= "can't be blank" (get-in validated-body [:errors :email])))
-    (t/is (= "can't be blank" (get-in validated-body [:errors :password])))))
+ (t/testing "empty username, email and password"
+   (let [register-body {:email "   " :password ""}
+         validated-body (sut/validate-body register-body sut/register-user-schema)]
+     (t/is (= "can't be blank" (get-in validated-body [:errors :username])))
+     (t/is (= "can't be blank" (get-in validated-body [:errors :email])))
+     (t/is (= "can't be blank" (get-in validated-body [:errors :password])))))
 
-(t/deftest test-too-long-fields-register-user-schema
-  (let [register-body {:username (apply str (repeat 51 "A")) :email (str (apply str (repeat 251 "A")) "email@sad.com") :password (apply str (repeat 101 "A"))}
-        validated-body (sut/validate-body register-body sut/register-user-schema)]
-    (t/is (= "is too long (maximum is 50 character)" (get-in validated-body [:errors :username])))
-    (t/is (= "is too long (maximum is 250 character)" (get-in validated-body [:errors :email])))
-    (t/is (= "is too long (maximum is 100 character)" (get-in validated-body [:errors :password])))))
+ (t/testing "too long fields"
+   (let [register-body {:username (apply str (repeat 51 "A")) :email (str (apply str (repeat 251 "A")) "email@sad.com") :password (apply str (repeat 101 "A"))}
+         validated-body (sut/validate-body register-body sut/register-user-schema)]
+     (t/is (= "is too long (maximum is 50 characters)" (get-in validated-body [:errors :username])))
+     (t/is (= "is too long (maximum is 250 characters)" (get-in validated-body [:errors :email])))
+     (t/is (= "is too long (maximum is 100 characters)" (get-in validated-body [:errors :password])))))
 
-(t/deftest test-too-short-password-register-user-schema
-  (let [register-body {:username "user" :email "email@email.com" :password "123"}
-        validated-body (sut/validate-body register-body sut/register-user-schema)]
-    (t/is (= "is too short (minimum is 8 character)" (get-in validated-body [:errors :password])))
-    (t/is (nil? (get-in validated-body [:errors :username])))
-    (t/is (nil? (get-in validated-body [:errors :email])))))
+ (t/testing "too short password"
+   (let [register-body {:username "user" :email "email@email.com" :password "123"}
+         validated-body (sut/validate-body register-body sut/register-user-schema)]
+     (t/is (= "is too short (minimum is 8 characters)" (get-in validated-body [:errors :password])))
+     (t/is (nil? (get-in validated-body [:errors :username])))
+     (t/is (nil? (get-in validated-body [:errors :email])))))
 
-(t/deftest test-invalid-email-register-user-schema
-  (let [register-body {:username "user1" :email "email@com" :password "12345678"}
-        validated-body (sut/validate-body register-body sut/register-user-schema)]
-    (t/is (= "is invalid" (get-in validated-body [:errors :email])))
-    (t/is (nil? (get-in validated-body [:errors :username])))
-    (t/is (nil? (get-in validated-body [:errors :password])))))
+ (t/testing "invalid email"
+   (let [register-body {:username "user1" :email "email@com" :password "12345678"}
+         validated-body (sut/validate-body register-body sut/register-user-schema)]
+     (t/is (= "is invalid" (get-in validated-body [:errors :email])))
+     (t/is (nil? (get-in validated-body [:errors :username])))
+     (t/is (nil? (get-in validated-body [:errors :password]))))))
 
 ;; update user schema
 
-(t/deftest test-valid-without-optional-fields-upate-user-schema
-  (let [update-body {:username "user1  " :email "  Email@email.coM "}
-        validated-body (sut/validate-body update-body sut/update-user-schema)]
-    (t/is (nil? (:errors validated-body)))
-    (t/is (= "user1" (:username validated-body)))
-    (t/is (= "email@email.com" (:email validated-body)))))
+(t/deftest test-update-user-schema
 
-(t/deftest test-valid-with-optional-fields-upate-user-schema
-  (let [update-body {:username "  user1" :email "  Email@email.coM " :password "12345678" :image "  image  " :bio "bio  "}
-        validated-body (sut/validate-body update-body sut/update-user-schema)]
-    (t/is (nil? (:errors validated-body)))
-    (t/is (= "user1" (:username validated-body)))
-    (t/is (= "email@email.com" (:email validated-body)))
-    (t/is (= (:password update-body) (:password validated-body)))
-    (t/is (= "image" (:image validated-body)))
-    (t/is (= "bio" (:bio validated-body)))))
+ (t/testing "all fields valid"
+   (let [update-body {:username "user1  " :email "  Email@email.coM "}
+         validated-body (sut/validate-body update-body sut/update-user-schema)]
+     (t/is (nil? (:errors validated-body)))
+     (t/is (= "user1" (:username validated-body)))
+     (t/is (= "email@email.com" (:email validated-body)))))
 
-(t/deftest test-empty-username-update-user-schema
-  (let [update-body {:username "" :email "  Email@email.coM " :bio "bio"}
-        validated-body (sut/validate-body update-body sut/update-user-schema)]
-    (t/is (= "can't be blank" (get-in validated-body [:errors :username])))
-    (t/is (nil? (get-in validated-body [:errors :email])))
-    (t/is (nil? (get-in validated-body [:errors :password])))
-    (t/is (nil? (get-in validated-body [:errors :bio])))
-    (t/is (nil? (get-in validated-body [:errors :image])))))
+ (t/testing "all fields valid with optional"
+   (let [update-body {:username "  user1" :email "  Email@email.coM " :password "12345678" :image "  image  " :bio "bio  "}
+         validated-body (sut/validate-body update-body sut/update-user-schema)]
+     (t/is (nil? (:errors validated-body)))
+     (t/is (= "user1" (:username validated-body)))
+     (t/is (= "email@email.com" (:email validated-body)))
+     (t/is (= (:password update-body) (:password validated-body)))
+     (t/is (= "image" (:image validated-body)))
+     (t/is (= "bio" (:bio validated-body)))))
 
-(t/deftest test-empty-username-email-update-user-schema
-  (let [update-body {:email "   " :image "image"}
-        validated-body (sut/validate-body update-body sut/update-user-schema)]
-    (t/is (= "can't be blank" (get-in validated-body [:errors :username])))
-    (t/is (= "can't be blank" (get-in validated-body [:errors :email])))
-    (t/is (nil? (get-in validated-body [:errors :password])))
-    (t/is (nil? (get-in validated-body [:errors :bio])))
-    (t/is (nil? (get-in validated-body [:errors :image])))))
+ (t/testing "empty username"
+   (let [update-body {:username "" :email "  Email@email.coM " :bio "bio"}
+         validated-body (sut/validate-body update-body sut/update-user-schema)]
+     (t/is (= "can't be blank" (get-in validated-body [:errors :username])))
+     (t/is (nil? (get-in validated-body [:errors :email])))
+     (t/is (nil? (get-in validated-body [:errors :password])))
+     (t/is (nil? (get-in validated-body [:errors :bio])))
+     (t/is (nil? (get-in validated-body [:errors :image])))))
 
-(t/deftest test-too-long-fields-update-user-schema
-  (let [update-body {:username (apply str (repeat 51 "A")) :email (str (apply str (repeat 251 "A")) "email@sad.com") :password (apply str (repeat 101 "A")) :image (apply str (repeat 501 "A")) :bio (apply str (repeat 1001 "A"))}
-        validated-body (sut/validate-body update-body sut/update-user-schema)]
-    (t/is (= "is too long (maximum is 50 character)" (get-in validated-body [:errors :username])))
-    (t/is (= "is too long (maximum is 250 character)" (get-in validated-body [:errors :email])))
-    (t/is (= "is too long (maximum is 100 character)" (get-in validated-body [:errors :password])))
-    (t/is (= "is too long (maximum is 1000 character)" (get-in validated-body [:errors :bio])))
-    (t/is (= "is too long (maximum is 500 character)" (get-in validated-body [:errors :image])))))
+ (t/testing "empty username and email"
+   (let [update-body {:email "   " :image "image"}
+         validated-body (sut/validate-body update-body sut/update-user-schema)]
+     (t/is (= "can't be blank" (get-in validated-body [:errors :username])))
+     (t/is (= "can't be blank" (get-in validated-body [:errors :email])))
+     (t/is (nil? (get-in validated-body [:errors :password])))
+     (t/is (nil? (get-in validated-body [:errors :bio])))
+     (t/is (nil? (get-in validated-body [:errors :image])))))
 
-(t/deftest test-too-short-password-update-user-schema
-  (let [update-body {:username "user" :email "email@email.com" :password "123"}
-        validated-body (sut/validate-body update-body sut/update-user-schema)]
-    (t/is (= "is too short (minimum is 8 character)" (get-in validated-body [:errors :password])))
-    (t/is (nil? (get-in validated-body [:errors :username])))
-    (t/is (nil? (get-in validated-body [:errors :email])))))
+ (t/testing "too long fields"
+   (let [update-body {:username (apply str (repeat 51 "A"))
+                      :email (str (apply str (repeat 251 "A")) "email@sad.com")
+                      :password (apply str (repeat 101 "A"))
+                      :image (apply str (repeat 501 "A")) :bio (apply str (repeat 1001 "A"))}
+         validated-body (sut/validate-body update-body sut/update-user-schema)]
+     (t/is (= "is too long (maximum is 50 characters)" (get-in validated-body [:errors :username])))
+     (t/is (= "is too long (maximum is 250 characters)" (get-in validated-body [:errors :email])))
+     (t/is (= "is too long (maximum is 100 characters)" (get-in validated-body [:errors :password])))
+     (t/is (= "is too long (maximum is 1000 characters)" (get-in validated-body [:errors :bio])))
+     (t/is (= "is too long (maximum is 500 characters)" (get-in validated-body [:errors :image])))))
 
-(t/deftest test-invalid-email-update-user-schema
-  (let [update-body {:username "user1" :email "email@com" :password "12345678"}
-        validated-body (sut/validate-body update-body sut/update-user-schema)]
-    (t/is (= "is invalid" (get-in validated-body [:errors :email])))
-    (t/is (nil? (get-in validated-body [:errors :username])))
-    (t/is (nil? (get-in validated-body [:errors :password])))))
+ (t/testing "too short password"
+   (let [update-body {:username "user" :email "email@email.com" :password "123"}
+         validated-body (sut/validate-body update-body sut/update-user-schema)]
+     (t/is (= "is too short (minimum is 8 characters)" (get-in validated-body [:errors :password])))
+     (t/is (nil? (get-in validated-body [:errors :username])))
+     (t/is (nil? (get-in validated-body [:errors :email])))))
+
+ (t/testing "invalid email"
+   (let [update-body {:username "user1" :email "email@com" :password "12345678"}
+         validated-body (sut/validate-body update-body sut/update-user-schema)]
+     (t/is (= "is invalid" (get-in validated-body [:errors :email])))
+     (t/is (nil? (get-in validated-body [:errors :username])))
+     (t/is (nil? (get-in validated-body [:errors :password]))))))
