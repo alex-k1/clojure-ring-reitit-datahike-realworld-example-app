@@ -31,8 +31,9 @@
   {:adapter/jetty {:handler (ig/ref :handler/app) :port 3000 :join? false}
    :handler/app {:routes (ig/ref :routes/all-routes) :apis (ig/ref :apis/all-apis)}
    :routes/all-routes {:token-auth-middleware (ig/ref :middleware/token-auth)}
-   :middleware/token-auth {}
-   :apis/all-apis {:conn (ig/ref :db/conn)}
+   :middleware/token-auth {:token (ig/ref :services/token)}
+   :apis/all-apis {:conn (ig/ref :db/conn) :token (ig/ref :services/token)}
+   :services/token {:jwt-key "key" :jwt-expiration-minutes 60}
    :db/conn {:store {:backend :mem :id "mem-db"}
              :initial-tx db/schema}})
 
@@ -48,30 +49,29 @@
 (defmethod ig/init-key :routes/all-routes [_ {:keys [token-auth-middleware]}]
   (routes/user-routes token-auth-middleware))
 
-;; TODO externilize
-(def jwt-key "key")
-(def jwt-expiration-minutes 60)
+(defmethod ig/init-key :middleware/token-auth [_ {:keys [token]}]
+  (middlewares/token-auth-middleware (:validate-token token)))
 
-(defmethod ig/init-key :middleware/token-auth [_ _]
-  (middlewares/token-auth-middleware (partial token/decode jwt-key)))
+(defmethod ig/init-key :apis/all-apis [_ {:keys [conn token]}]
+  {:login-user (partial apis/login-user {:find-user-by-email (partial db/find-user-by-email conn)
+                                         :generate-token (:generate-token token)})
 
-(defmethod ig/init-key :apis/all-apis [_ {:keys [conn]}]
-  (let [generate-token (partial token/encode jwt-key jwt-expiration-minutes)]
-    {:login-user (partial apis/login-user {:find-user-by-email (partial db/find-user-by-email conn)
-                                           :generate-token generate-token})
+   :register-user (partial apis/register-user {:find-user-by-email (partial db/find-user-by-email conn)
+                                               :find-user-by-username (partial db/find-user-by-username conn)
+                                               :add-user (partial db/add-user conn)
+                                               :generate-token (:generate-token token)})
 
-     :register-user (partial apis/register-user {:find-user-by-email (partial db/find-user-by-email conn)
-                                                 :find-user-by-username (partial db/find-user-by-username conn)
-                                                 :add-user (partial db/add-user conn)
-                                                 :generate-token generate-token})
+   :get-user (partial apis/get-user {:find-user-by-user-id (partial db/find-user-by-user-id conn)
+                                     :generate-token (:generate-token token)})
 
-     :get-user (partial apis/get-user {:find-user-by-user-id (partial db/find-user-by-user-id conn)
-                                       :generate-token generate-token})
+   :update-user (partial apis/update-user {:find-user-by-email (partial db/find-user-by-email conn)
+                                           :find-user-by-username (partial db/find-user-by-username conn)
+                                           :update-user (partial db/update-user conn)
+                                           :generate-token (:generate-token token)})})
 
-     :update-user (partial apis/update-user {:find-user-by-email (partial db/find-user-by-email conn)
-                                             :find-user-by-username (partial db/find-user-by-username conn)
-                                             :update-user (partial db/update-user conn)
-                                             :generate-token generate-token})}))
+(defmethod ig/init-key :services/token [_ {:keys [jwt-key jwt-expiration-minutes]}]
+  {:generate-token (partial token/encode jwt-key jwt-expiration-minutes)
+   :validate-token (partial token/decode jwt-key)})
 
 (defmethod ig/init-key :db/conn [_ cfg]
   (when-not (d/database-exists? cfg)
